@@ -1,0 +1,16 @@
+# General
+.DS_Store
+.vscode/
+Ideas.md
+
+# Log files and directories
+*.log
+*.log.*
+logs/
+
+
+
+# Python-specific ignores
+__pycache__/
+*.py[cod]
+*$py.class
