@@ -8,8 +8,6 @@ Ideas.md
 *.log.*
 logs/
 
-
-
 # Python-specific ignores
 __pycache__/
 *.py[cod]
