@@ -3,10 +3,38 @@ import argparse
 import logging, time
 import os
 
-#class Logger: 
+class DiskUsage:
+  @staticmethod
+  def Main():
+    # We'll want to parse the arguments first, so we can get if the logger needs to be set to debug or not.
+    args = ArgumentParser.Parse()
+    mountPointDirectory = args.mount_point
+
+    # Create the logger for errors and/or debugging.
+    logLevel = logging.ERROR
+    if args.debug: logLevel = logging.DEBUG
+
+    logFormat = '%(asctime)s %(name)s %(levelname)s %(message)s'
+    logging.basicConfig(level=logLevel, format=logFormat)
+    logger = logging.getLogger(__name__)
+    
+    logger.debug("Arguments: %s", args)
+
+    isValidMountPoint = Validation.ValidateMountPoint(mountPointDirectory)
+    logger.debug("Is Valid Mount Point: %s", isValidMountPoint)
+    
+    if not isValidMountPoint:
+      logger.error("The path '%s' is not a valid mount point.", mountPointDirectory)
+      exit(1)
+    else:
+      fileArray = []
+      rootFiles = os.listdir(mountPointDirectory)
+      for file in rootFiles:
+        print('hi')
 
 class ArgumentParser:
-  def Parse(self):
+  @staticmethod
+  def Parse():
     parser = argparse.ArgumentParser(description='diskusage.py is a script that takes a mount point as a parameter and returns a json object containing all of the files on that mount point.')
     parser.add_argument('mount_point', action='store', help='the mount point to scan', metavar='MOUNT_POINT')
     parser.add_argument('--debug', action='store_true', help='enable debug output') 
@@ -14,16 +42,10 @@ class ArgumentParser:
     return args
 
 class Validation:
-  def ValidateMountPoint(self, path):
+  @staticmethod
+  def ValidateMountPoint(path):
     return os.path.ismount(path)
 
-if __name__ == "__main__":
-  args = ArgumentParser().Parse()
+if __name__ == '__main__':
+  DiskUsage.Main()
 
-  if args.debug:
-    print("Arguments:", args)
-
-  valid_mount_point = Validation().ValidateMountPoint(args.mount_point)
-
-  if args.debug:
-    print("Is Valid Mount Point:", valid_mount_point)
