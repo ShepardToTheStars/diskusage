@@ -11,7 +11,7 @@ class DiskUsage:
   def __init__(self, logLevel=logging.ERROR):
     # Basically just sets up the logger for the error/debug output
     # The logger will not interfere with the standard output of the utility
-    logFormat = '%(asctime)s %(name)s %(levelname)s %(message)s'
+    logFormat = '%(asctime)s %(levelname)s %(message)s'
     logging.basicConfig(level=logLevel, format=logFormat)
     self.logger = logging.getLogger(__name__)
     
