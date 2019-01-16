@@ -9,9 +9,10 @@ class DiskUsage:
   Class that contains the main logic behind the diskusage utility.
   """
   def __init__(self, logLevel=logging.ERROR):
+    # TODO: Validate logLevel
     # Basically just sets up the logger for the error/debug output
     # The logger will not interfere with the standard output of the utility
-    logFormat = '%(asctime)s %(levelname)s %(message)s'
+    logFormat = '%(asctime)s %(levelname)s | %(message)s'
     logging.basicConfig(level=logLevel, format=logFormat)
     self.logger = logging.getLogger(__name__)
     
@@ -47,20 +48,22 @@ class DiskUsage:
     Returns a list of DiskUsageFile objects.
     """
     fileList = []
+
+    # We want to check if its a different mount point and if it is, skip it and return an empty list.
+    if self.isMountPoint(path) is True and skipMountPointValidationCheck is False:
+      self.logger.debug("Skipping scan of mount point: %s", path)
+      return fileList
+
+    self.logger.debug("Scanning Path: %s", path)
+    if skipMountPointValidationCheck: 
+      self.logger.debug("  skipMountPointValidationCheck: %s", skipMountPointValidationCheck)
+    
     rootFiles = os.scandir(path)
     for node in rootFiles:
       # If its a direcory that isn't a symlink, we want to recursively check into those directories and get
-      # their files. We also want to check if its another mount point and skip it if it is.
-      # Note: The only time we would want to skip the validation check is for the root mount point node.
+      # their files.
       if node.is_dir() and not node.is_symlink():
-        if self.isMountPoint(node.path) is False or skipMountPointValidationCheck:
-          self.logger.debug("Scanning Path: %s", path)
-          if skipMountPointValidationCheck: 
-            self.logger.debug("  skipMountPointValidationCheck: %s", skipMountPointValidationCheck)
-
-          fileList.extend(self.scanDirectoryContents(node.path, False))
-        else:
-          self.logger.debug("Skipping scan of mount point: %s", path)
+        fileList.extend(self.scanDirectoryContents(node.path, False))
       
       # Otherwise, if its a file, add it to the list!
       elif node.is_file() and not node.is_symlink():
@@ -92,12 +95,11 @@ class ArgumentParser:
   @staticmethod
   def validate(args):
     """
-    Validates the arguments values.
+    Function that validates the arguments values.
     """
     if args.indent is not None and args.indent < 0:
       raise ValueError("The indentation argument cannot be negative.")
     
-
 class DiskUsageOutput():
   """
    A basic storage class that contains a list of DiskUsageFile objects as well
@@ -111,12 +113,14 @@ class DiskUsageOutput():
     Wrapper function that creates and appends a new DiskUsageOutput object to the internal list
     from the specified path and size.
     """
+    # TODO: validate params
     self.files.append(DiskUsageFile(path, size))
 
   def extend(self, list):
     """
     Wrapper function that appends the specified existing DiskUsageOutput list to the internal list.
     """
+    # TODO: validate params
     self.files.extend(list)
 
   def toJson(self, indent=None):
@@ -125,6 +129,7 @@ class DiskUsageOutput():
     encoder used will just print the internal properties of the class. By default, there is no indentation
     but that can be specified if we want the JSON to be more readable.
     """
+    # TODO: validate params
     return json.dumps(self, cls=CustomJsonEncoder, indent=indent)
 
 class DiskUsageFile:
@@ -132,6 +137,7 @@ class DiskUsageFile:
   A basic storage class that holds the file path size.
   """
   def __init__(self, path, size):
+     # TODO: validate params
      self.path = path
      self.size = size
 

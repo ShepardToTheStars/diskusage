@@ -18,3 +18,11 @@ $ diskusage.py [-h] [-i INT] [--debug] MOUNT_POINT
   * `-h` - Shows usage and help information
   * `-i [INT]` - Outputs the json with indentation (Default: None)
   * `--debug` - Enables debug output
+
+### TODO
+* Write tests
+* Additional parameter validation
+* Finalize make file
+* Document dependencies
+* Performance Improvements
+  * Threading
