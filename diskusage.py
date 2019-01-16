@@ -15,7 +15,6 @@ class DiskUsage:
     logFormat = '%(asctime)s %(levelname)s | %(message)s'
     logging.basicConfig(level=logLevel, format=logFormat)
     self.logger = logging.getLogger(__name__)
-    
   
   def getDiskUsage(self, mountPointDirectory):
     """
@@ -60,16 +59,20 @@ class DiskUsage:
     
     rootFiles = os.scandir(path)
     for node in rootFiles:
+      # If the node is a symlink, skip it.
+      if node.is_symlink():
+        pass
+
       # If its a direcory that isn't a symlink, we want to recursively check into those directories and get
       # their files.
-      if node.is_dir() and not node.is_symlink():
+      elif node.is_dir():
         fileList.extend(self.scanDirectoryContents(node.path, False))
-      
+
       # Otherwise, if its a file, add it to the list!
-      elif node.is_file() and not node.is_symlink():
+      elif node.is_file():
         fileInfo = DiskUsageFile(node.path, node.stat().st_size)
         fileList.append(fileInfo)
-      
+
     return fileList
 
   @staticmethod
