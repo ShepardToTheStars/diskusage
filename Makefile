@@ -1,12 +1,21 @@
 .PHONY: build test clean
 
-build:
-	echo "TODO"
+installDependencies:
+	@echo "=> Install Missing Dependencies"
+	# TODO: virtualenv, make dependency install "smart"
+	@echo "TODO"
 
-test: 
+build: installDependencies
+	@echo "=> Build"
+	@echo "TODO"
+
+test: installDependencies
+	@echo "=> Test"
 	python3 test/tests.py
 
 clean:
-	echo "TODO"
+	@echo "=> Clean"
+	rm -rf test/__pycache__
+	rm -f *.tmp.txt
 
 default: build
