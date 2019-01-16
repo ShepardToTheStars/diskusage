@@ -20,9 +20,12 @@ $ diskusage.py [-h] [-i INT] [--debug] MOUNT_POINT
 
 ### TODO
 * Write tests
-* Permission Error Handling
 * Additional parameter validation
 * Finalize make file
 * Document dependencies
+
+### Other Ideas
 * Performance Improvements
-  * Threading
+  * Multi-Threading
+  * Process Priority Argument?
+  * 

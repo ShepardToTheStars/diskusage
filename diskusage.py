@@ -3,6 +3,7 @@ import argparse
 import logging
 import time
 import os
+import sys
 
 class DiskUsage:
   """
@@ -59,20 +60,24 @@ class DiskUsage:
     
     rootFiles = os.scandir(path)
     for node in rootFiles:
-      # If the node is a symlink, skip it.
-      if node.is_symlink():
-        pass
+      try:
+        # If the node is a symlink, skip it.
+        if node.is_symlink():
+          pass
 
-      # If its a direcory that isn't a symlink, we want to recursively check into those directories and get
-      # their files.
-      elif node.is_dir():
-        fileList.extend(self.scanDirectoryContents(node.path, False))
+        # If its a direcory that isn't a symlink, we want to recursively check into those directories and get
+        # their files.
+        elif node.is_dir():
+          fileList.extend(self.scanDirectoryContents(node.path, False))
 
-      # Otherwise, if its a file, add it to the list!
-      elif node.is_file():
-        fileInfo = DiskUsageFile(node.path, node.stat().st_size)
-        fileList.append(fileInfo)
-
+        # Otherwise, if its a file, add it to the list!
+        elif node.is_file():
+          fileInfo = DiskUsageFile(node.path, node.stat().st_size)
+          fileList.append(fileInfo)
+      except PermissionError as ex:
+        # Permission errors will happen so lets just output them as a warning. This may want to be a configurable
+        # thing eventually, but for now, let's just spit out a warning.
+        self.logger.warning("Permission Denied: %s", node.path)
     return fileList
 
   @staticmethod
@@ -152,13 +157,24 @@ class CustomJsonEncoder(json.JSONEncoder):
     return o.__dict__
 
 if __name__ == '__main__':
-  # We'll want to parse the arguments first, so we can get if the logger needs to be set to debug or not.
-  args = ArgumentParser.parse()
+  rc = 1
+  try:
+    args = ArgumentParser.parse()
+    # We'll want to parse the arguments first, so we can get if the logger needs to be set to debug or not.
+    args = ArgumentParser.parse()
 
-  # Create the logger for errors and/or debugging.
-  logLevel = logging.WARNING
-  if args.debug: logLevel = logging.DEBUG
+    # Create the logger for errors and/or debugging.
+    logLevel = logging.WARNING
+    if args.debug: logLevel = logging.DEBUG
 
-  diskUsageUtil = DiskUsage(logLevel)
-  outputObject = diskUsageUtil.getDiskUsage(args.mount_point)
-  print(outputObject.toJson(args.indent))
+    diskUsageUtil = DiskUsage(logLevel)
+    outputObject = diskUsageUtil.getDiskUsage(args.mount_point)
+    print(outputObject.toJson(args.indent))      
+
+    rc = 0
+  except Exception as ex:
+    print('Error: %s' % ex, file=sys.stderr)
+  sys.exit(rc)
+
+
+ 
