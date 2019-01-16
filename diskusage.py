@@ -13,7 +13,7 @@ class DiskUsage:
   def GetDiskUsage(self, mountPointDirectory):
     self.logger.debug("Mount Point Path: %s", mountPointDirectory)
     isValidMountPoint = Validation.IsMountPoint(mountPointDirectory)
-    self.logger.debug("Is Valid Mount Point: %s", isValidMountPoint)
+    self.logger.debug("Path Is Valid Mount Point: %s", isValidMountPoint)
     
     if not isValidMountPoint:
       self.logger.error("The path '%s' is not a valid mount point.", mountPointDirectory)
@@ -22,13 +22,10 @@ class DiskUsage:
     else:
       outputObject = DiskUsageOutput()
       outputObject.Extend(self.ScanDirectoryContents(mountPointDirectory, True))
-
-
     return outputObject
 
          
   def ScanDirectoryContents(self, path, skipMountPointValidationCheck=False):
-    self.logger.debug("Scanning Path: %s", path)
     if skipMountPointValidationCheck: self.logger.debug("  skipMountPointValidationCheck: %s", skipMountPointValidationCheck)
     fileList = []
     rootFiles = os.scandir(path)
@@ -38,7 +35,10 @@ class DiskUsage:
       # Note: The only time we would want to skip the validation check is for the root mount point node.
       if node.is_dir() and not node.is_symlink():
         if not Validation.IsMountPoint(node.path) or skipMountPointValidationCheck:
+          self.logger.debug("Scanning Path: %s", path)
           fileList.extend(self.ScanDirectoryContents(node.path))
+        else:
+          self.logger.debug("Skipping scan of mount point: %s", mountPointDirectory)
       
       # Otherwise, if its a file, add it to the list!
       elif node.is_file() and not node.is_symlink():
@@ -71,8 +71,8 @@ class DiskUsageOutput():
   def Extend(self, list):
     self.files.extend(list)
 
-  def ToJson(self):
-    return json.dumps(self, cls=CustomJsonEncoder, indent=2)
+  def ToJson(self, indent=None):
+    return json.dumps(self, cls=CustomJsonEncoder, indent=indent)
 
 class DiskUsageFile:
   def __init__(self, path, size):
@@ -81,7 +81,7 @@ class DiskUsageFile:
 
 class CustomJsonEncoder(json.JSONEncoder):
   def default(self, o):
-    return {'__{}__'.format(o.__class__.__name__): o.__dict__}
+    return o.__dict__
 
 if __name__ == '__main__':
   # We'll want to parse the arguments first, so we can get if the logger needs to be set to debug or not.
