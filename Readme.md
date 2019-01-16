@@ -7,7 +7,6 @@ This utility takes a mount point directory as a parameter and returns the list o
 * Python 3
 
 ### Usage
-
 ```bash
 $ diskusage.py [-h] [-i INT] [--debug] MOUNT_POINT
 ```
@@ -16,11 +15,12 @@ $ diskusage.py [-h] [-i INT] [--debug] MOUNT_POINT
   * `MOUNT_POINT` - (REQUIRED) Path to the mount point to scan
 * Flags
   * `-h` - Shows usage and help information
-  * `-i [INT]` - Outputs the json with indentation (Default: None)
+  * `-i [INT]` - Prettifies the JSON output and adds indentation equal the the `INT` provided  (Default: None)
   * `--debug` - Enables debug output
 
 ### TODO
 * Write tests
+* Permission Error Handling
 * Additional parameter validation
 * Finalize make file
 * Document dependencies

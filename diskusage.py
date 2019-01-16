@@ -8,7 +8,7 @@ class DiskUsage:
   """
   Class that contains the main logic behind the diskusage utility.
   """
-  def __init__(self, logLevel=logging.ERROR):
+  def __init__(self, logLevel=logging.WARNING):
     # TODO: Validate logLevel
     # Basically just sets up the logger for the error/debug output
     # The logger will not interfere with the standard output of the utility
@@ -156,7 +156,7 @@ if __name__ == '__main__':
   args = ArgumentParser.parse()
 
   # Create the logger for errors and/or debugging.
-  logLevel = logging.ERROR
+  logLevel = logging.WARNING
   if args.debug: logLevel = logging.DEBUG
 
   diskUsageUtil = DiskUsage(logLevel)
