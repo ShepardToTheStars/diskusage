@@ -7,4 +7,14 @@ This utility takes a mount point directory as a parameter and returns the list o
 * Python 3
 
 ### Usage
-TODO
+
+```bash
+$ diskusage.py [-h] [-i INT] [--debug] MOUNT_POINT
+```
+
+* Arguments
+  * `MOUNT_POINT` - (REQUIRED) Path to the mount point to scan
+* Flags
+  * `-h` - Shows usage and help information
+  * `-i [INT]` - Outputs the json with indentation (Default: None)
+  * `--debug` - Enables debug output

@@ -10,7 +10,6 @@ class DiskUsage:
     logging.basicConfig(level=logLevel, format=logFormat)
     self.logger = logging.getLogger(__name__)
     
-
   def getDiskUsage(self, mountPointDirectory):
     self.logger.debug("Mount Point Path: %s", mountPointDirectory)
     isValidMountPoint = Validation.isMountPoint(mountPointDirectory)
@@ -25,7 +24,6 @@ class DiskUsage:
       outputObject.extend(self.scanDirectoryContents(mountPointDirectory, True))
     return outputObject
 
-         
   def scanDirectoryContents(self, path, skipMountPointValidationCheck=False):
     if skipMountPointValidationCheck: self.logger.debug("  skipMountPointValidationCheck: %s", skipMountPointValidationCheck)
     fileList = []
@@ -53,6 +51,7 @@ class ArgumentParser:
   def parse():
     parser = argparse.ArgumentParser(description='diskusage.py is a script that takes a mount point as a parameter and returns a json object containing all of the files on that mount point.')
     parser.add_argument('mount_point', action='store', help='the mount point to scan', metavar='MOUNT_POINT')
+    parser.add_argument('-i','--indent', action='store', default=None, type=int, help='if specified, json will be indented by the number specified', metavar='INT') 
     parser.add_argument('--debug', action='store_true', help='enable debug output') 
     args = parser.parse_args()
     return args
@@ -94,4 +93,4 @@ if __name__ == '__main__':
 
   diskUsageUtil = DiskUsage(logLevel)
   outputObject = diskUsageUtil.getDiskUsage(args.mount_point)
-  print(outputObject.toJson())
+  print(outputObject.toJson(args.indent))
