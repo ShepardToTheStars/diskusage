@@ -5,12 +5,25 @@ import time
 import os
 
 class DiskUsage:
+  """
+  Class that contains the main logic behind the diskusage utility.
+  """
   def __init__(self, logLevel=logging.ERROR):
+    # Basically just sets up the logger for the error/debug output
+    # The logger will not interfere with the standard output of the utility
     logFormat = '%(asctime)s %(name)s %(levelname)s %(message)s'
     logging.basicConfig(level=logLevel, format=logFormat)
     self.logger = logging.getLogger(__name__)
     
+  
   def getDiskUsage(self, mountPointDirectory):
+    """
+    The 'main' function of the diskusage utility. This method will take a path, validate that
+    it is a mount point, and then initiate a recursive scan of that mount point. 
+
+    Returns a DiskUsageOutput object which can be either accessed normally or output as JSON
+    using the toJson method.
+    """
     self.logger.debug("Mount Point Path: %s", mountPointDirectory)
     isValidMountPoint = Validation.isMountPoint(mountPointDirectory)
     self.logger.debug("Path Is Valid Mount Point: %s", isValidMountPoint)
@@ -25,6 +38,16 @@ class DiskUsage:
     return outputObject
 
   def scanDirectoryContents(self, path, skipMountPointValidationCheck=False):
+    """
+    Function that takes a directory path and adds file info for that directory to a list. It will also recursively
+    scans any child directories. Any symbolic links are not followed, because of the following reasons:
+    - Any symbolic links to directories or files on the current file system will be scanned eventually. We don't want
+      to "double count" a single file twice because of a symbolic link.
+    - Any symbolic links to directories or files on the *different* mounted file system should not be counted as they are
+      not part of the current scan.
+
+    Returns a list of DiskUsageFile objects.
+    """
     if skipMountPointValidationCheck: self.logger.debug("  skipMountPointValidationCheck: %s", skipMountPointValidationCheck)
     fileList = []
     rootFiles = os.scandir(path)
@@ -47,6 +70,9 @@ class DiskUsage:
     return fileList
 
 class ArgumentParser:
+  """
+  Container class that contains all of the CLI argument declaration and parsing.
+  """
   @staticmethod
   def parse():
     parser = argparse.ArgumentParser(description='diskusage.py is a script that takes a mount point as a parameter and returns a json object containing all of the files on that mount point.')
@@ -57,29 +83,57 @@ class ArgumentParser:
     return args
 
 class Validation:
+  """ 
+  Contains common validation functions used by other classes.
+  """
   @staticmethod
   def isMountPoint(path):
+    """
+    True if the path specified is a mount point, otherwise, false.
+    """
     return os.path.ismount(path)
 
 class DiskUsageOutput():
+  """
+   A basic storage class that contains a list of DiskUsageFile objects as well
+   as some functions to manipulate that list and serialize the object as JSON. 
+  """
   def __init__(self):
     self.files = []
 
   def append(self, path, size):
+    """
+    Wrapper function that creates and appends a new DiskUsageOutput object to the internal list
+    from the specified path and size.
+    """
     self.files.append(DiskUsageFile(path, size))
 
   def extend(self, list):
+    """
+    Wrapper function that appends the specified existing DiskUsageOutput list to the internal list.
+    """
     self.files.extend(list)
 
   def toJson(self, indent=None):
+    """
+    Serializes the current object and any complex child objects into a JSON representation. The custom
+    encoder used will just print the internal properties of the class. By default, there is no indentation
+    but that can be specified if we want the JSON to be more readable.
+    """
     return json.dumps(self, cls=CustomJsonEncoder, indent=indent)
 
 class DiskUsageFile:
+  """
+  A basic storage class that holds the file path size.
+  """
   def __init__(self, path, size):
      self.path = path
      self.size = size
 
 class CustomJsonEncoder(json.JSONEncoder):
+  """
+  Contains the custom Json Encoder to encode complex python objects that would usually throw a TypeError
+  """
   def default(self, o):
     return o.__dict__
 
