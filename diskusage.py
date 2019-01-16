@@ -4,39 +4,48 @@ import logging, time
 import os
 
 class DiskUsage:
-  @staticmethod
-  def Main():
-    # We'll want to parse the arguments first, so we can get if the logger needs to be set to debug or not.
-    args = ArgumentParser.Parse()
-    mountPointDirectory = args.mount_point
-
-    # Create the logger for errors and/or debugging.
-    logLevel = logging.ERROR
-    if args.debug: logLevel = logging.DEBUG
-
+  def __init__(self, logLevel=logging.ERROR):
     logFormat = '%(asctime)s %(name)s %(levelname)s %(message)s'
     logging.basicConfig(level=logLevel, format=logFormat)
-    logger = logging.getLogger(__name__)
+    self.logger = logging.getLogger(__name__)
     
-    logger.debug("Arguments: %s", args)
 
+  def GetDiskUsage(self, mountPointDirectory):
+    self.logger.debug("Mount Point Path: %s", mountPointDirectory)
     isValidMountPoint = Validation.IsMountPoint(mountPointDirectory)
-    logger.debug("Is Valid Mount Point: %s", isValidMountPoint)
+    self.logger.debug("Is Valid Mount Point: %s", isValidMountPoint)
     
     if not isValidMountPoint:
-      logger.error("The path '%s' is not a valid mount point.", mountPointDirectory)
+      self.logger.error("The path '%s' is not a valid mount point.", mountPointDirectory)
+      # Maybe throw something instead?
       exit(1)
     else:
-      fileArray = []
-      rootFiles = os.scandir(mountPointDirectory)
-      for node in rootFiles:
-        if node.is_dir() and not node.is_symlink():
-          if (not Validation.IsMountPoint(node.path)):
-            logger.debug("%s,recurse!", node.path)
+      outputObject = DiskUsageOutput()
+      outputObject.Extend(self.ScanDirectoryContents(mountPointDirectory, True))
 
-        elif node.is_file() and not node.is_symlink():
-          logger.debug("%s,%s", node.path, node.stat().st_size)
+
+    return outputObject
+
          
+  def ScanDirectoryContents(self, path, skipMountPointValidationCheck=False):
+    self.logger.debug("Scanning Path: %s", path)
+    if skipMountPointValidationCheck: self.logger.debug("  skipMountPointValidationCheck: %s", skipMountPointValidationCheck)
+    fileList = []
+    rootFiles = os.scandir(path)
+    for node in rootFiles:
+      # If its a direcory that isn't a symlink, we want to recursively check into those directories and get
+      # their files. We also want to check if its another mount point and skip it if it is.
+      # Note: The only time we would want to skip the validation check is for the root mount point node.
+      if node.is_dir() and not node.is_symlink():
+        if not Validation.IsMountPoint(node.path) or skipMountPointValidationCheck:
+          fileList.extend(self.ScanDirectoryContents(node.path))
+      
+      # Otherwise, if its a file, add it to the list!
+      elif node.is_file() and not node.is_symlink():
+        fileInfo = DiskUsageFile(node.path, node.stat().st_size)
+        fileList.append(fileInfo)
+      
+    return fileList
 
 class ArgumentParser:
   @staticmethod
@@ -52,6 +61,36 @@ class Validation:
   def IsMountPoint(path):
     return os.path.ismount(path)
 
-if __name__ == '__main__':
-  DiskUsage.Main()
+class DiskUsageOutput():
+  def __init__(self):
+    self.files = []
 
+  def Append(self, path, size):
+    self.files.append(DiskUsageFile(path, size))
+
+  def Extend(self, list):
+    self.files.extend(list)
+
+  def ToJson(self):
+    return json.dumps(self, cls=CustomJsonEncoder, indent=2)
+
+class DiskUsageFile:
+  def __init__(self, path, size):
+     self.path = path
+     self.size = size
+
+class CustomJsonEncoder(json.JSONEncoder):
+  def default(self, o):
+    return {'__{}__'.format(o.__class__.__name__): o.__dict__}
+
+if __name__ == '__main__':
+  # We'll want to parse the arguments first, so we can get if the logger needs to be set to debug or not.
+  args = ArgumentParser.Parse()
+
+  # Create the logger for errors and/or debugging.
+  logLevel = logging.ERROR
+  if args.debug: logLevel = logging.DEBUG
+
+  diskUsageUtil = DiskUsage(logLevel)
+  outputObject = diskUsageUtil.GetDiskUsage(args.mount_point)
+  print(outputObject.ToJson())
