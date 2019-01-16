@@ -20,7 +20,7 @@ class DiskUsage:
     
     logger.debug("Arguments: %s", args)
 
-    isValidMountPoint = Validation.ValidateMountPoint(mountPointDirectory)
+    isValidMountPoint = Validation.IsMountPoint(mountPointDirectory)
     logger.debug("Is Valid Mount Point: %s", isValidMountPoint)
     
     if not isValidMountPoint:
@@ -28,9 +28,15 @@ class DiskUsage:
       exit(1)
     else:
       fileArray = []
-      rootFiles = os.listdir(mountPointDirectory)
-      for file in rootFiles:
-        print('hi')
+      rootFiles = os.scandir(mountPointDirectory)
+      for node in rootFiles:
+        if node.is_dir() and not node.is_symlink():
+          if (not Validation.IsMountPoint(node.path)):
+            logger.debug("%s,recurse!", node.path)
+
+        elif node.is_file() and not node.is_symlink():
+          logger.debug("%s,%s", node.path, node.stat().st_size)
+         
 
 class ArgumentParser:
   @staticmethod
@@ -43,7 +49,7 @@ class ArgumentParser:
 
 class Validation:
   @staticmethod
-  def ValidateMountPoint(path):
+  def IsMountPoint(path):
     return os.path.ismount(path)
 
 if __name__ == '__main__':
