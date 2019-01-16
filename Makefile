@@ -16,6 +16,7 @@ test: installDependencies
 clean:
 	@echo "=> Clean"
 	rm -rf test/__pycache__
+	rm -rf env
 	rm -f *.tmp.txt
 
 default: build
