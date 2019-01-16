@@ -1,6 +1,7 @@
 import json
 import argparse
-import logging, time
+import logging
+import time
 import os
 
 class DiskUsage:
@@ -10,9 +11,9 @@ class DiskUsage:
     self.logger = logging.getLogger(__name__)
     
 
-  def GetDiskUsage(self, mountPointDirectory):
+  def getDiskUsage(self, mountPointDirectory):
     self.logger.debug("Mount Point Path: %s", mountPointDirectory)
-    isValidMountPoint = Validation.IsMountPoint(mountPointDirectory)
+    isValidMountPoint = Validation.isMountPoint(mountPointDirectory)
     self.logger.debug("Path Is Valid Mount Point: %s", isValidMountPoint)
     
     if not isValidMountPoint:
@@ -21,11 +22,11 @@ class DiskUsage:
       exit(1)
     else:
       outputObject = DiskUsageOutput()
-      outputObject.Extend(self.ScanDirectoryContents(mountPointDirectory, True))
+      outputObject.extend(self.scanDirectoryContents(mountPointDirectory, True))
     return outputObject
 
          
-  def ScanDirectoryContents(self, path, skipMountPointValidationCheck=False):
+  def scanDirectoryContents(self, path, skipMountPointValidationCheck=False):
     if skipMountPointValidationCheck: self.logger.debug("  skipMountPointValidationCheck: %s", skipMountPointValidationCheck)
     fileList = []
     rootFiles = os.scandir(path)
@@ -34,9 +35,9 @@ class DiskUsage:
       # their files. We also want to check if its another mount point and skip it if it is.
       # Note: The only time we would want to skip the validation check is for the root mount point node.
       if node.is_dir() and not node.is_symlink():
-        if not Validation.IsMountPoint(node.path) or skipMountPointValidationCheck:
+        if not Validation.isMountPoint(node.path) or skipMountPointValidationCheck:
           self.logger.debug("Scanning Path: %s", path)
-          fileList.extend(self.ScanDirectoryContents(node.path))
+          fileList.extend(self.scanDirectoryContents(node.path))
         else:
           self.logger.debug("Skipping scan of mount point: %s", mountPointDirectory)
       
@@ -49,7 +50,7 @@ class DiskUsage:
 
 class ArgumentParser:
   @staticmethod
-  def Parse():
+  def parse():
     parser = argparse.ArgumentParser(description='diskusage.py is a script that takes a mount point as a parameter and returns a json object containing all of the files on that mount point.')
     parser.add_argument('mount_point', action='store', help='the mount point to scan', metavar='MOUNT_POINT')
     parser.add_argument('--debug', action='store_true', help='enable debug output') 
@@ -58,20 +59,20 @@ class ArgumentParser:
 
 class Validation:
   @staticmethod
-  def IsMountPoint(path):
+  def isMountPoint(path):
     return os.path.ismount(path)
 
 class DiskUsageOutput():
   def __init__(self):
     self.files = []
 
-  def Append(self, path, size):
+  def append(self, path, size):
     self.files.append(DiskUsageFile(path, size))
 
-  def Extend(self, list):
+  def extend(self, list):
     self.files.extend(list)
 
-  def ToJson(self, indent=None):
+  def toJson(self, indent=None):
     return json.dumps(self, cls=CustomJsonEncoder, indent=indent)
 
 class DiskUsageFile:
@@ -85,12 +86,12 @@ class CustomJsonEncoder(json.JSONEncoder):
 
 if __name__ == '__main__':
   # We'll want to parse the arguments first, so we can get if the logger needs to be set to debug or not.
-  args = ArgumentParser.Parse()
+  args = ArgumentParser.parse()
 
   # Create the logger for errors and/or debugging.
   logLevel = logging.ERROR
   if args.debug: logLevel = logging.DEBUG
 
   diskUsageUtil = DiskUsage(logLevel)
-  outputObject = diskUsageUtil.GetDiskUsage(args.mount_point)
-  print(outputObject.ToJson())
+  outputObject = diskUsageUtil.getDiskUsage(args.mount_point)
+  print(outputObject.toJson())
