@@ -25,13 +25,11 @@ class DiskUsage:
     using the toJson method.
     """
     self.logger.debug("Mount Point Path: %s", mountPointDirectory)
-    isValidMountPoint = Validation.isMountPoint(mountPointDirectory)
+    isValidMountPoint = self.isMountPoint(mountPointDirectory)
     self.logger.debug("Path Is Valid Mount Point: %s", isValidMountPoint)
     
     if not isValidMountPoint:
-      self.logger.error("The path '%s' is not a valid mount point.", mountPointDirectory)
-      # Maybe throw something instead?
-      exit(1)
+      raise ValueError("The path '%s' is not a valid mount point." % mountPointDirectory)
     else:
       outputObject = DiskUsageOutput()
       outputObject.extend(self.scanDirectoryContents(mountPointDirectory, True))
@@ -48,7 +46,6 @@ class DiskUsage:
 
     Returns a list of DiskUsageFile objects.
     """
-    if skipMountPointValidationCheck: self.logger.debug("  skipMountPointValidationCheck: %s", skipMountPointValidationCheck)
     fileList = []
     rootFiles = os.scandir(path)
     for node in rootFiles:
@@ -56,11 +53,14 @@ class DiskUsage:
       # their files. We also want to check if its another mount point and skip it if it is.
       # Note: The only time we would want to skip the validation check is for the root mount point node.
       if node.is_dir() and not node.is_symlink():
-        if not Validation.isMountPoint(node.path) or skipMountPointValidationCheck:
+        if self.isMountPoint(node.path) is False or skipMountPointValidationCheck:
           self.logger.debug("Scanning Path: %s", path)
-          fileList.extend(self.scanDirectoryContents(node.path))
+          if skipMountPointValidationCheck: 
+            self.logger.debug("  skipMountPointValidationCheck: %s", skipMountPointValidationCheck)
+
+          fileList.extend(self.scanDirectoryContents(node.path, False))
         else:
-          self.logger.debug("Skipping scan of mount point: %s", mountPointDirectory)
+          self.logger.debug("Skipping scan of mount point: %s", path)
       
       # Otherwise, if its a file, add it to the list!
       elif node.is_file() and not node.is_symlink():
@@ -68,6 +68,13 @@ class DiskUsage:
         fileList.append(fileInfo)
       
     return fileList
+
+  @staticmethod
+  def isMountPoint(path):
+    """
+    True if the path specified is a mount point, otherwise, false.
+    """
+    return os.path.ismount(path)
 
 class ArgumentParser:
   """
@@ -81,17 +88,15 @@ class ArgumentParser:
     parser.add_argument('--debug', action='store_true', help='enable debug output') 
     args = parser.parse_args()
     return args
-
-class Validation:
-  """ 
-  Contains common validation functions used by other classes.
-  """
+  
   @staticmethod
-  def isMountPoint(path):
+  def validate(args):
     """
-    True if the path specified is a mount point, otherwise, false.
+    Validates the arguments values.
     """
-    return os.path.ismount(path)
+    if args.indent is not None and args.indent < 0:
+      raise ValueError("The indentation argument cannot be negative.")
+    
 
 class DiskUsageOutput():
   """
