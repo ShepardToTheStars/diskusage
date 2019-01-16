@@ -2,6 +2,8 @@
 .DS_Store
 .vscode/
 Ideas.md
+*.tmp
+*.tmp.txt
 
 # Log files and directories
 *.log
