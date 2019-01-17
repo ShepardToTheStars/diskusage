@@ -4,11 +4,11 @@
 This utility takes a mount point directory as a parameter and returns the list of files and their sizes (in JSON format) on that specific mount point.
 
 ### Requirements
-* Python 3
+* Python 3.6+
 
 ### Usage
 ```bash
-$ diskusage.py [-h] [-i INT] [--debug] MOUNT_POINT
+$ python3 diskusage.py [-h] [-i INT] [--debug] MOUNT_POINT
 ```
 
 * Arguments
