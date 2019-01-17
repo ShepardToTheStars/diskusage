@@ -22,10 +22,10 @@ $ python3 diskusage.py [-h] [-i INT] [--debug] MOUNT_POINT
 * Write tests
 * Additional parameter validation
 * Finalize make file
-* Document dependencies
 
-### Other Ideas
-* Performance Improvements
-  * Multi-Threading
-  * Process Priority Argument?
-  * 
+### Other Improvements
+* Formal packaging using `setuptools`
+* More virtualized and isolated environment (using )
+* Multi-Threading support
+* Process priority argument?
+* Improved Tests (using [pyfakefs](https://pypi.org/project/pyfakefs/))
