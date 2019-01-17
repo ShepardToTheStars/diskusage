@@ -1,15 +1,20 @@
-.PHONY: build test clean
+.PHONY: demo1 demo2 centos build test clean
 
-installDependencies:
-	@echo "=> Install Missing Dependencies"
-	# TODO: virtualenv, make dependency install "smart"
-	@echo "TODO"
+demo1:
+	python3 diskusage.py -i 2 /private/var/vm
+	@echo "\n________________________________________________\n"
+	ls -l /private/var/vm
 
-build: installDependencies
+demo2
+	rm -f demo2.tmp.json
+	python3 diskusage.py --debug -i 2 / > demo2.tmp.json
+	tail -n 1000 demo2.tmp.json
+
+build:
 	@echo "=> Build"
 	@echo "TODO"
 
-test: installDependencies
+test: 
 	@echo "=> Test"
 	python3 test/tests.py
 

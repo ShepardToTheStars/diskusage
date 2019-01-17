@@ -3,7 +3,7 @@
 .vscode/
 Ideas.md
 *.tmp
-*.tmp.txt
+*.tmp.*
 
 # Log files and directories
 *.log
