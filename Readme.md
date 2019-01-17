@@ -25,7 +25,7 @@ $ python3 diskusage.py [-h] [-i INT] [--debug] MOUNT_POINT
 
 ### Other Improvements
 * Formal packaging using `setuptools`
-* More virtualized and isolated environment (using )
+* More virtualized and isolated environment (using [venv](https://docs.python.org/3/library/venv.html#an-example-of-extending-envbuilder))
 * Multi-Threading support
-* Process priority argument?
+* Process priority argument
 * Improved Tests (using [pyfakefs](https://pypi.org/project/pyfakefs/))
